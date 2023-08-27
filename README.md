@@ -1,5 +1,5 @@
 # antiminer-rs
-antiminer-rs is just your casual Anti-Shell for Pterodactyl(R) panel. Design with one of the finest algorithms out there along with speed, this antiminer can bring all the miners down to their ground.
+antiminer-rs is just your casual Anti-Shell for Pterodactyl® panel. Design with one of the finest algorithms out there along with speed, this antiminer can bring all the miners down to their ground.
 
 ## Installation
 Download the latest binary from the [releases](https://github.com/n8lldaemon/antiminer-rs/releases) page.
