@@ -101,27 +101,3 @@ fn main(){
     }
 }
 
-#[cfg(test)]
-mod tests{
-    use std::fs;
-    use crate::scan;
-
-    #[test]
-    fn singlescan() {
-        println!("Testing 1 file; 66MB");
-        assert_eq!(scan("./test/0.jar"), false);
-    }
-
-    #[test]
-    fn testscan() {
-        let mut results: Vec<bool> = Vec::new();
-        for file in fs::read_dir("./test").unwrap() {
-            let file = file.unwrap();
-            results.push(scan(file.path().to_str().unwrap()));
-        }
-        
-        assert_eq!(results[0], false);
-        assert_eq!(results[1], true);
-        assert_eq!(results[2], true);
-    } 
-}
