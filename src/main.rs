@@ -16,6 +16,7 @@ use std::{thread, time::Duration};
 use lazy_static::lazy_static;
 use regex::Regex;
 use zip::ZipArchive;
+use std::sync::Mutex;
 
 mod discord;
 // const PREFIX: &str = ".";
@@ -28,14 +29,16 @@ lazy_static!{
         Regex::new(r"waitFor").unwrap(),
         Regex::new(r"start").unwrap()
     ];
+
+    static ref CAUGHT: Mutex<Vec<String>> = Mutex::new(vec![]);
 }
 
-fn scan(filename: &str) -> bool {
+fn scan(filename: &str) -> Result<String, &str> {
     let file = File::options()
         .read(true)
         .open(filename).unwrap();
     let mut archive = match ZipArchive::new(file) {
-        Err(_) => return false,
+        Err(_) => return Err("Archive is plain"),
         Ok(arcv) => arcv, 
     };
      
@@ -51,11 +54,11 @@ fn scan(filename: &str) -> bool {
 
         // Check if file has the specified Regex
         if MATCHES.iter().all(|re| re.is_match(&contents)) {
-            return true
+            return Ok(filename.to_string())
         }
     }
     
-    false
+    Err("Didn't pass the test")
 }
 
 fn init(){
@@ -82,13 +85,17 @@ fn init(){
             print!("Scanning {:?} ", file.path());
 
             match scan(file.path().to_str().unwrap()) {
-                true => {
+                Ok(file) => {
+                    if CAUGHT.lock().unwrap().contains(&file) {
+                        continue
+                    }
+                    CAUGHT.lock().unwrap().push(file.clone());
                     println!("FAIL! Sending webhook...");
                     discord::send_webhook(format!(
-                    "Found malicious jar file in {}/server/{:?}"
-                    , &hosturl, folder_name).replace("\"", "").as_ref()).unwrap();
+                    "Found malicious jar file ({}) in {}/server/{:?}"
+                    , file, &hosturl, folder_name).replace("\"", "").as_ref()).unwrap();
                 }
-                false => println!("PASS"),
+                _ => println!("PASS"),
             };
         }
     }
@@ -100,4 +107,3 @@ fn main(){
         thread::sleep(Duration::from_secs(30));
     }
 }
-
